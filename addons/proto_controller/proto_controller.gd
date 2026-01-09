@@ -86,7 +86,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func apply_friction(delta: float):
 	var speed := velocity.length()
-	if speed < 0.1:
+	if speed <= 0:
 		return
 
 	var drop := speed * ground_friction * delta
