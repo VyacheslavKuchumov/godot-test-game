@@ -65,5 +65,5 @@ size = Vector3(1, 0.5, 1)
 transform = Transform3D(25, 0, 0, 0, 0.99999994, 0, 0, 0, 25, 0, 0, 0)
 use_collision = true
 
-[node name="ProtoController" parent="." instance=ExtResource("1_ig7tw")]
+[node name="Player" parent="." instance=ExtResource("1_ig7tw")]
 transform = Transform3D(-1, 0, 5.323755e-05, 0, 1, 0, -5.323755e-05, 0, -1, -2.2, 0.8, -8.1)

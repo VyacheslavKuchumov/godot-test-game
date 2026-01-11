@@ -138,6 +138,7 @@ func _physics_process(delta: float) -> void:
 		apply_friction(delta)
 		accelerate(wish_dir, wish_speed, ground_acceleration, delta)
 	else:
+		wish_speed = wish_speed / 2
 		accelerate(wish_dir, wish_speed, air_acceleration , delta)
 
 	
