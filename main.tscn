@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://cwcl4a1f0fuks"]
+[gd_scene load_steps=6 format=3 uid="uid://cwcl4a1f0fuks"]
 
 [ext_resource type="PackedScene" uid="uid://bs72ogkvdd7d6" path="res://addons/proto_controller/proto_controller.tscn" id="1_ig7tw"]
 
@@ -14,6 +14,9 @@ background_mode = 2
 sky = SubResource("Sky_ig7tw")
 tonemap_mode = 2
 glow_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ig7tw"]
+albedo_color = Color(0.3226359, 0.6112678, 0.23255256, 1)
 
 [node name="Main" type="Node3D"]
 
@@ -64,6 +67,8 @@ size = Vector3(1, 0.5, 1)
 [node name="Ground" type="CSGBox3D" parent="."]
 transform = Transform3D(25, 0, 0, 0, 0.99999994, 0, 0, 0, 25, 0, 0, 0)
 use_collision = true
+size = Vector3(10, 1, 10)
+material = SubResource("StandardMaterial3D_ig7tw")
 
 [node name="Player" parent="." instance=ExtResource("1_ig7tw")]
 transform = Transform3D(-1, 0, 5.323755e-05, 0, 1, 0, -5.323755e-05, 0, -1, -2.2, 0.8, -8.1)
