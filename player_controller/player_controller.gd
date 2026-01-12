@@ -7,7 +7,8 @@ extends CharacterBody3D
 
 ## Can we move around?
 @export var can_move : bool = true
-
+## Are we affected by gravity?
+@export var has_gravity : bool = true
 ## Can we press to jump?
 @export var can_jump : bool = true
 ## Can we hold to run?
@@ -18,6 +19,8 @@ extends CharacterBody3D
 @export_group("Speeds")
 ## Look around rotation speed.
 @export var look_speed : float = 0.002
+## Multiplier for gamepad sensetivity.
+@export var gamepad_look_multiplier : int = 30
 ## Normal speed.
 @export var base_speed : float = 7.0
 ## Speed of jump.
@@ -27,33 +30,34 @@ extends CharacterBody3D
 ## How fast do we freefly?
 @export var freefly_speed : float = 25.0
 
-@export var gravity : float = 24.8
-@export var max_ground_speed : float = 7.0
-@export var max_air_speed : float = 7.0
-@export var ground_acceleration : float = 50.0
-@export var air_acceleration : float = 15.0
-@export var ground_friction : float = 8.0
-
 
 @export_group("Input Actions")
 ## Name of Input Action to move Left.
-@export var input_left : String = "ui_left"
+@export var input_left : String = "move_left"
 ## Name of Input Action to move Right.
-@export var input_right : String = "ui_right"
+@export var input_right : String = "move_right"
 ## Name of Input Action to move Forward.
-@export var input_forward : String = "ui_up"
+@export var input_forward : String = "move_up"
 ## Name of Input Action to move Backward.
-@export var input_back : String = "ui_down"
+@export var input_back : String = "move_down"
 ## Name of Input Action to Jump.
-@export var input_jump : String = "ui_accept"
+@export var input_jump : String = "jump"
 ## Name of Input Action to Sprint.
 @export var input_sprint : String = "sprint"
 ## Name of Input Action to toggle freefly mode.
 @export var input_freefly : String = "freefly"
+## Name of Input Action to pan camera up (joystick).
+@export var input_pan_left : String = "pan_left"
+## Name of Input Action to pan camera down (joystick).
+@export var input_pan_right : String = "pan_right"
+## Name of Input Action to pan camera up (joystick).
+@export var input_pan_up : String = "pan_up"
+## Name of Input Action to pan camera down (joystick).
+@export var input_pan_down : String = "pan_down"
 
 var mouse_captured : bool = false
 var look_rotation : Vector2
-var move_speed : float = 0.0
+var move_speed : float = 10.0
 var freeflying : bool = false
 
 ## IMPORTANT REFERENCES
@@ -74,7 +78,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	
 	# Look around
 	if mouse_captured and event is InputEventMouseMotion:
-		rotate_look(event.relative)
+		rotate_look(event.relative, look_speed)
 	
 	# Toggle freefly mode
 	if can_freefly and Input.is_action_just_pressed(input_freefly):
@@ -83,29 +87,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		else:
 			disable_freefly()
 
-
-func apply_friction(delta: float):
-	var speed := velocity.length()
-	if speed <= 0:
-		return
-
-	var drop := speed * ground_friction * delta
-	var new_speed := max(speed - drop, 0)
-	velocity *= new_speed / speed
-
-
-func accelerate(wish_dir: Vector3, wish_speed: float, accel: float, delta: float):
-	var current_speed := velocity.dot(wish_dir)
-	var add_speed := wish_speed - current_speed
-	if add_speed <= 0:
-		return
-
-	var accel_speed := accel * wish_speed * delta
-	if accel_speed > add_speed:
-		accel_speed = add_speed
-
-	velocity += wish_dir * accel_speed
-
+func _process(delta: float) -> void:
+	var pan_dir := Input.get_vector(input_pan_left, input_pan_right, input_pan_up, input_pan_down)
+	rotate_look(pan_dir, look_speed * gamepad_look_multiplier)
+	
 
 func _physics_process(delta: float) -> void:
 	# If freeflying, handle freefly and nothing else
@@ -117,39 +102,40 @@ func _physics_process(delta: float) -> void:
 		return
 	
 	# Apply gravity to velocity
-	if not is_on_floor():
-		velocity.y -= gravity * delta
+	if has_gravity:
+		if not is_on_floor():
+			velocity += get_gravity() * delta
 
 	# Apply jumping
 	if can_jump:
 		if Input.is_action_just_pressed(input_jump) and is_on_floor():
 			velocity.y = jump_velocity
 
-	# Input
-	var input_dir := Input.get_vector(input_left, input_right, input_forward, input_back)
-	var wish_dir := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-
-	# Sprint logic
-	var wish_speed := base_speed
+	# Modify speed based on sprinting
 	if can_sprint and Input.is_action_pressed(input_sprint):
-		wish_speed = sprint_speed
-
-	if is_on_floor():
-		apply_friction(delta)
-		accelerate(wish_dir, wish_speed, ground_acceleration, delta)
+			move_speed = sprint_speed
 	else:
-		wish_speed = wish_speed / 2
-		accelerate(wish_dir, wish_speed, air_acceleration , delta)
+		move_speed = base_speed
 
+	# Apply desired movement to velocity
+	if can_move:
+		var input_dir := Input.get_vector(input_left, input_right, input_forward, input_back)
+		
+		
+		velocity.x = -input_dir.x * move_speed
+		velocity.z = -input_dir.y * move_speed
+		
+	else:
+		velocity.x = 0
+		velocity.y = 0
 	
 	# Use velocity to actually move
 	move_and_slide()
 
-
 ## Rotate us to look around.
 ## Base of controller rotates around y (left/right). Head rotates around x (up/down).
 ## Modifies look_rotation based on rot_input, then resets basis and rotates by look_rotation.
-func rotate_look(rot_input : Vector2):
+func rotate_look(rot_input : Vector2, look_speed):
 	look_rotation.x -= rot_input.y * look_speed
 	look_rotation.x = clamp(look_rotation.x, deg_to_rad(-85), deg_to_rad(85))
 	look_rotation.y -= rot_input.x * look_speed
