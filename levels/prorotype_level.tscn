@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://cdt06d1dn72os"]
+
+[ext_resource type="PackedScene" uid="uid://blitcwapxditx" path="res://scenes/environment/world_environment.tscn" id="1_nmnyy"]
+[ext_resource type="PackedScene" uid="uid://cotvp1vfjgu70" path="res://scenes/player/player_controller.tscn" id="2_elrxo"]
+
+[node name="PrototypeLevel" type="Node3D" unique_id=846099093]
+
+[node name="Geometry" type="Node3D" parent="." unique_id=1037471298]
+
+[node name="Floor" type="CSGBox3D" parent="Geometry" unique_id=134897828]
+use_collision = true
+size = Vector3(20, 0.1, 20)
+
+[node name="WorldEnvironment" parent="." unique_id=401797509 instance=ExtResource("1_nmnyy")]
+
+[node name="PlayerController" parent="." unique_id=1504375487 instance=ExtResource("2_elrxo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4943204, 0)
